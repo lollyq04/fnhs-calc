@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FNHS Calculator</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    text-align: center;
+    width: 100%;
+}
+
+input[type="text"] {
+    padding: 5px;
+}
+
+input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#resultContainer {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+}
+
+#rentAmount {
+            font-size: 24px;
+            font-weight: bold;
+            color: red;
+			}
+
+    </style>
+</head>
+<body>
+    <h1>FNHS Profit-Sharing Calculator</h1>
+
+    <form id="profitForm">
+        <label for="collector">Collector:</label>
+        <input type="text" id="collector" name="collector" required>
+
+        <label for="station">Station:</label>
+        <select id="station" name="station" required>
+            <option value="">Select Station</option>
+            <option value="Dummun - Sunday">Dummun - Sunday</option>
+            <option value="Capiddigan - Matias">Capiddigan - Matias</option>
+            <option value="Capiddigan - Tungpalan">Capiddigan - Tungpalan</option>
+            <option value="Bangatan - Berto">Bangatan - Berto</option>
+            <option value="Palagao - Marissa">Palagao - Marissa</option>
+            <option value="Aparri - Corpuz">Aparri - Corpuz</option>
+        </select>
+
+        <label for="coinsCollected">Coins Collected:</label>
+        <input type="text" id="coinsCollected" name="coinsCollected" pattern="[0-9]+" required>
+
+        <input type="submit" value="Calculate Rent">
+    </form>
+
+    <div id="resultContainer">
+        <h2 id="profitTitle">The Profit shared for <span id="stationName"></span> is:</h2>
+        <p id="rentAmount"></p>
+        <button onclick="saveData()">Download Data</button>
+    </div>
+
+    <script>
+        var results = {};
+
+        function calculateRent() {
+            var collector = document.getElementById("collector").value;
+            var station = document.getElementById("station").value;
+            var coinsCollected = parseInt(document.getElementById("coinsCollected").value);
+
+            if (!collector || !station || isNaN(coinsCollected)) {
+                alert("Please enter all the required data.");
+                return;
+            }
+
+            var rentPercentage = 0;
+
+            if (station === "Palagao - Marissa") {
+                rentPercentage = 50;
+            } else {
+                var rentRanges = [
+                    { from: 1, to: 3000, percentage: 10 },
+                    { from: 3001, to: 5500, percentage: 15 },
+                    { from: 5501, to: 8000, percentage: 20 },
+                    { from: 8001, to: 10500, percentage: 25 },
+                    { from: 10501, to: Infinity, percentage: 30 }
+                ];
+
+                for (var i = 0; i < rentRanges.length; i++) {
+                    var range = rentRanges[i];
+                    if (coinsCollected >= range.from && coinsCollected <= range.to) {
+                        rentPercentage = range.percentage;
+                        break;
+                    }
+                }
+            }
+
+            var rentAmount = (coinsCollected * rentPercentage) / 100;
+            rentAmount = rentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            document.getElementById("stationName").innerHTML = station;
+            document.getElementById("rentAmount").innerHTML = "₱" + rentAmount;
+            document.getElementById("resultContainer").style.display = "block";
+
+            results = {
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                collector: collector,
+                coinsCollected: coinsCollected,
+                rentAmount: rentAmount
+            };
+        }
+
+        function saveData() {
+			var station = document.getElementById("station").value;
+			var filename = station + "_" + new Date().toISOString().slice(0, 10);
+			var coinsCollected = results.coinsCollected.toLocaleString(); // Format coins collected with commas for thousands
+			var content = "Date and Time: " + results.date + " " + results.time + "\n" +
+				"Collector: " + results.collector + "\n" +
+				"Coins Collected: " + coinsCollected + "\n" +
+				"Rent Amount: ₱" + results.rentAmount;
+
+			var element = document.createElement('a');
+				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+				element.setAttribute("download", filename + ".txt");
+				element.style.display = 'none';
+				document.body.appendChild(element);
+				element.click();
+				document.body.removeChild(element);
+}
+
+
+        document.getElementById("profitForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            calculateRent();
+        });
+    </script>
+</body>
+</html>
